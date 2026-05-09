@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CBE Transfer</title>
+
+<meta name="theme-color" content="#6a0080">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CBE Transfer">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+
+<style>
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: rgba(0,0,0,0.3);
+    }
+
+    .modal {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+    }
+
+    .glass-frame {
+        padding: 30px 15px;
+        border-radius: 0;
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+        pointer-events: none;
+    }
+
+    .card {
+        width: 300px;
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        position: relative;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        pointer-events: all;
+    }
+
+    .header {
+        background: linear-gradient(45deg, purple, #9c27b0);
+        color: white;
+        padding: 15px;
+        position: relative;
+    }
+
+    /* header title row: shield + stacked text side by side */
+    .header h2 {
+        margin: 0;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .header-text-stack {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+    }
+
+    .header-text-stack .title-main {
+        font-size: 15px;
+        font-weight: bold;
+    }
+
+    .header-text-stack .title-sub {
+        font-size: 12px;
+        font-weight: normal;
+        opacity: 0.9;
+    }
+
+    .header p {
+        margin: 0;
+        font-size: 14px;
+    }
+
+    .icons {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+    }
+
+    .icons span {
+        margin-left: 10px;
+        cursor: pointer;
+        font-size: 18px;
+    }
+
+    /* ── FORM PAGE ── */
+    .form-content {
+        padding: 20px;
+        color: #333;
+    }
+
+    .form-content h3 {
+        margin: 0 0 18px 0;
+        font-size: 16px;
+        color: #555;
+    }
+
+    .input-group {
+        margin-bottom: 16px;
+    }
+
+    .input-group label {
+        display: block;
+        font-size: 12px;
+        font-weight: bold;
+        color: #666;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .input-group input {
+        width: 100%;
+        padding: 11px 12px;
+        border: 1.5px solid #ddd;
+        border-radius: 8px;
+        font-size: 15px;
+        background: white;
+        box-sizing: border-box;
+        outline: none;
+        transition: border 0.2s;
+        text-transform: uppercase;
+    }
+
+    .input-group input:focus {
+        border-color: #9c27b0;
+    }
+
+    .input-group input.no-caps {
+        text-transform: none;
+    }
+
+    .input-hint {
+        font-size: 11px;
+        color: #999;
+        margin-top: 4px;
+    }
+
+    .etb-row {
+        display: flex;
+        align-items: center;
+        background: white;
+        border: 1.5px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: border 0.2s;
+    }
+
+    .etb-row:focus-within {
+        border-color: #9c27b0;
+    }
+
+    .etb-label {
+        padding: 11px 10px;
+        font-size: 14px;
+        font-weight: bold;
+        color: #9c27b0;
+        background: #f9f0ff;
+        border-right: 1px solid #ddd;
+        white-space: nowrap;
+    }
+
+    .etb-row input {
+        border: none !important;
+        border-radius: 0 !important;
+        flex: 1;
+        text-transform: none !important;
+    }
+
+    .etb-row input:focus {
+        border: none;
+        outline: none;
+    }
+
+    /* ── RECEIPT PAGE ── */
+    .content {
+        padding: 15px;
+        color: #333;
+        font-size: 14px;
+    }
+
+    .receipt-message {
+        font-weight: bold;
+        line-height: 1.6;
+        margin-bottom: 0;
+    }
+
+    .qr {
+        text-align: center;
+        margin: 0 0 15px 0;
+    }
+
+    .qr-wrapper {
+        display: inline-block;
+        position: relative;
+        background: white;
+        padding: 36px;
+        border-radius: 5px;
+        box-shadow: 0 6px 3px rgba(0,0,0,0.2);
+    }
+
+    .qr-wrapper img#qrImg {
+        display: block;
+        width: 150px;
+        height: 150px;
+        border-radius: 4px;
+    }
+
+    .qr-logo {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 38px;
+        height: 38px;
+        border-radius: 6px;
+        background: transparent;
+        padding: 3px;
+        object-fit: contain;
+    }
+
+    .btn {
+        display: block;
+        width: 60%;
+        margin: 10px auto;
+        padding: 12px;
+        background: #b88a4a;
+        color: white;
+        border: none;
+        border-radius: 25px;
+        font-size: 16px;
+        cursor: pointer;
+        box-shadow: 0 6px 3px rgba(0,0,0,0.2);
+    }
+
+    .btn:hover {
+        background: #a6783c;
+    }
+
+    .btn-send {
+        display: block;
+        width: 100%;
+        margin: 20px 0 0 0;
+        padding: 13px;
+        background: linear-gradient(45deg, purple, #9c27b0);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        letter-spacing: 0.5px;
+    }
+
+    .btn-send:hover {
+        background: linear-gradient(45deg, #6a0080, #7b1fa2);
+    }
+
+    .footer {
+        background: #e6e6e6;
+        padding: 15px;
+        display: flex;
+        align-items: center;
+    }
+
+    .footer img {
+        width: 40px;
+        margin-right: 10px;
+    }
+
+    .icon-btn {
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        vertical-align: middle;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .error-msg {
+        color: red;
+        font-size: 12px;
+        margin-top: 4px;
+        display: none;
+    }
+
+    .receipt-btn {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        margin: 15px auto;
+        background: #b88a4a;
+        color: black;
+    }
+
+    .receipt-btn img {
+        width: 28px;
+        height: 28px;
+    }
+    .in {
+        transform: scale(1.6);
+    }
+    .tach {
+        transform: scale(1.6);
+    }
+    .download-icon {
+        stroke-width: 3;
+    }
+</style>
+
+</head>
+<body>
+
+<div class="modal" id="modal">
+    <div class="glass-frame">
+    <div class="card">
+
+        <!-- Header -->
+        <div class="header">
+            <h2 id="headerTitle" style="display:flex;align-items:center;gap:8px;">💸 Send Money</h2>
+            <p id="headerSub">CBE Transfer</p>
+            <div class="icons">
+                <span id="shareBtn" title="Share" class="hidden icon-btn">
+                   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="18" cy="5" r="3" fill="white"/>
+                      <circle cx="6" cy="12" r="3" fill="white"/>
+                      <circle cx="18" cy="19" r="3" fill="white"/>
+                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                    </svg>
+                </span>
+                <span id="downloadBtn" title="Download" class="hidden icon-btn">
+                    <svg id="download-icon" class="icon download-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 4v10" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                      <polyline points="7 11 12 16 17 11" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                      <line x1="6" y1="19" x2="18" y2="19" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </span>
+                <span id="closeBtn" title="Close">✖</span>
+            </div>
+        </div>
+
+        <!-- ══ FORM PAGE ══ -->
+        <div id="formPage">
+            <div class="form-content">
+                <h3>Enter Transfer Details</h3>
+
+                <!-- Recipient Full Name -->
+                <div class="input-group">
+                    <label>Recipient Full Name</label>
+                    <input type="text" id="recipientName" placeholder="e.g. BETELIHEM PETIROS DALE" maxlength="60">
+                    <div class="input-hint">Auto-converted to UPPERCASE</div>
+                    <div class="error-msg" id="nameError">Please enter recipient full name.</div>
+                </div>
+
+                <!-- 4-digit Account Number -->
+                <div class="input-group">
+                    <label>Account Number (4 digits after -ETB-)</label>
+                    <input type="text" id="accountDigits" class="no-caps" placeholder="e.g. 6499" maxlength="4" inputmode="numeric">
+                    <div class="input-hint">The 4-digit number next to -ETB-</div>
+                    <div class="error-msg" id="digitError">Please enter a valid 4-digit number.</div>
+                </div>
+
+                <!-- Amount -->
+                <div class="input-group">
+                    <label>Amount to Send</label>
+                    <div class="etb-row">
+                        <span class="etb-label">ETB</span>
+                        <input type="number" id="amount" class="no-caps" placeholder="0.00" min="1" step="0.01">
+                    </div>
+                    <div class="error-msg" id="amountError">Please enter a valid amount.</div>
+                </div>
+
+                <button class="btn-send" id="sendBtn">Send ➜</button>
+            </div>
+        </div>
+
+        <!-- ══ RECEIPT PAGE ══ -->
+        <div id="receiptPage" class="hidden">
+            <div class="content">
+                <p><strong>Message</strong></p>
+
+                <p class="receipt-message">
+                    <span id="receiptAmount">ETB 0.00 debited</span> from MR YONAS GETACHEW BEKELE for <span id="receiptRecipient"></span>-ETB-<span id="receiptDigits"></span> on <span id="dateTime">Loading...</span> with transaction ID: <span id="txId"></span>. <span id="receiptTotals"></span>
+                </p>
+
+                <!-- QR Code -->
+                <div class="qr">
+                    <div class="qr-wrapper">
+                        <img id="qrImg" src="" alt="QR Code">
+                        <img class="qr-logo" src="https://res.cloudinary.com/doexys4ja/image/upload/logo_x8f6ll.png" alt="Logo">
+                    </div>
+                </div>
+
+                <button class="btn receipt-btn">
+                    <img class="in" src="https://res.cloudinary.com/doexys4ja/image/upload/invoice_dzromr.png" alt="invoice">
+                    <span>View Receipt</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <img class="tach" src="https://res.cloudinary.com/doexys4ja/image/upload/logo_x8f6ll.png" alt="Bank Logo">
+            <div>
+                <strong>Commercial Bank of<br>Ethiopia</strong><br>
+                <small>The Bank You can always Rely on!</small>
+            </div>
+        </div>
+
+    </div>
+    </div>
+</div>
+
+<script>
+    function formatWithCommas(number) {
+        var parts = number.toString().split(".");
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        return parts.join(".");
+    }
+
+    document.getElementById("shareBtn").addEventListener("click", () => {
+        const text = document.getElementById("receiptAmount").textContent +
+            " from MR YONAS GETACHEW BEKELE for " +
+            document.getElementById("receiptRecipient").textContent + "-ETB-" +
+            document.getElementById("receiptDigits").textContent +
+            " on " + document.getElementById("dateTime").textContent +
+            " with transaction ID: " + document.getElementById("txId").textContent +
+            ". " + document.getElementById("receiptTotals").textContent;
+        if (navigator.share) {
+            navigator.share({ title: "CBE Transaction Receipt", text });
+        } else {
+            navigator.clipboard.writeText(text).then(() => alert("Receipt copied to clipboard!"));
+        }
+    });
+
+    document.getElementById("downloadBtn").addEventListener("click", () => {
+        const text = document.getElementById("receiptAmount").textContent +
+            " from MR YONAS GETACHEW BEKELE for " +
+            document.getElementById("receiptRecipient").textContent + "-ETB-" +
+            document.getElementById("receiptDigits").textContent +
+            " on " + document.getElementById("dateTime").textContent +
+            " with transaction ID: " + document.getElementById("txId").textContent +
+            ".\n" + document.getElementById("receiptTotals").textContent;
+        const blob = new Blob([text], { type: "text/plain" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "CBE_Receipt_" + document.getElementById("txId").textContent + ".txt";
+        a.click();
+    });
+
+    document.getElementById("closeBtn").addEventListener("click", () => {
+        document.getElementById("modal").classList.add("hidden");
+    });
+
+    document.getElementById("recipientName").addEventListener("input", function () {
+        const pos = this.selectionStart;
+        this.value = this.value.toUpperCase();
+        this.setSelectionRange(pos, pos);
+    });
+
+    document.getElementById("accountDigits").addEventListener("input", function () {
+        this.value = this.value.replace(/\D/g, "").slice(0, 4);
+    });
+
+    document.getElementById("sendBtn").addEventListener("click", () => {
+        const name   = document.getElementById("recipientName").value.trim();
+        const digits = document.getElementById("accountDigits").value.trim();
+        const amount = parseFloat(document.getElementById("amount").value);
+
+        document.getElementById("nameError").style.display   = name === "" ? "block" : "none";
+        document.getElementById("digitError").style.display  = digits.length !== 4 ? "block" : "none";
+        document.getElementById("amountError").style.display = (!amount || amount <= 0) ? "block" : "none";
+
+        if (name === "" || digits.length !== 4 || !amount || amount <= 0) return;
+
+        const commission = 0.50;
+        const vat        = parseFloat((commission * 0.15).toFixed(2));
+        const disaster   = parseFloat((commission * 0.05).toFixed(2));
+        const total      = parseFloat((amount + commission + vat + disaster).toFixed(2));
+
+        document.getElementById("receiptAmount").textContent    = "ETB " + formatWithCommas(amount.toFixed(2)) + " debited";
+        document.getElementById("receiptRecipient").textContent = name;
+        document.getElementById("receiptDigits").textContent    = digits;
+        document.getElementById("receiptTotals").textContent    =
+            `Total Amount Debited ETB ${formatWithCommas(total.toFixed(2))} with commission of ETB ${formatWithCommas(commission.toFixed(2))}, ` +
+            `15% VAT of ETB ${formatWithCommas(vat.toFixed(2))} and 5% Disaster Fund of ETB ${formatWithCommas(disaster.toFixed(2))}.`;
+
+        const txId = generateTxId();
+        document.getElementById("txId").textContent = txId;
+
+        document.getElementById("formPage").classList.add("hidden");
+        document.getElementById("receiptPage").classList.remove("hidden");
+
+        // Shield stays left, "Thank You!" on top, "Success" below it, to the right
+        document.getElementById("headerTitle").innerHTML = `
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" style="flex-shrink:0;">
+                <defs>
+                    <mask id="tickMask">
+                        <rect width="24" height="24" fill="white"/>
+                        <path d="M7.5 12.5l3 3 6-6" stroke="black" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                    </mask>
+                </defs>
+                <path d="M12 2L3 6v6c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V6L12 2z"
+                      fill="white" mask="url(#tickMask)"/>
+            </svg>
+            <div class="header-text-stack">
+                <span class="title-main">Thank You!</span>
+                <span class="title-sub">Success</span>
+            </div>`;
+
+        document.getElementById("headerSub").style.display = "none";
+        document.getElementById("shareBtn").classList.remove("hidden");
+        document.getElementById("downloadBtn").classList.remove("hidden");
+
+        document.getElementById("qrImg").src =
+            "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" + txId;
+
+        loadServerDate();
+    });
+
+    function generateTxId() {
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        let id = "FT";
+        for (let i = 0; i < 10; i++) {
+            id += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return id;
+    }
+
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        const day  = String(date.getDate()).padStart(2, '0');
+        const year = date.getFullYear();
+        const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+        const month  = months[date.getMonth()];
+        return `${day}-${month}-${year}`;
+    }
+
+    function loadServerDate() {
+        document.getElementById("dateTime").textContent = formatDate(new Date());
+        try {
+            fetch("https://worldtimeapi.org/api/timezone/Africa/Addis_Ababa")
+                .then(function(r){ return r.json(); })
+                .then(function(d){ if(d && d.datetime) document.getElementById("dateTime").textContent = formatDate(d.datetime); })
+                .catch(function(){});
+        } catch(e) {}
+    }
+
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+</script>
+</body>
+</html>
